@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* tokens do Tailwind v4 */
+@theme {
+  --color-brand-primary: #0F172A;
+  --color-brand-accent:  #002EB8;
+  --color-brand-accent-hover: #1A44FF; /* pra hover */
+}
+
+html, body, #root { height: 100%; }
+body { background:#0b0b0b; color:#fff; }
