@@ -1,19 +1,21 @@
-export type Linha = "Madeira" | "Neutros" | "Coloridos";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export type Cor = {
-  code: string;
-  name: string;
-  line: Linha;
-  url: string; // caminho da imagem
+  id: number;
+  nome: string;
+  linha: string;
+  colecao: string;
+  tipo: "MADEIRA" | "NEUTRO" | "ROCHOSO";
+  imagem: string;
 };
 
-let _cache: Cor[] | null = null;
-
 export async function getCores(): Promise<Cor[]> {
-  if (_cache) return _cache;
-  const res = await fetch("/catalogo/cores.json", { headers: { "cache-control": "no-cache" } });
-  if (!res.ok) throw new Error(`Falha ao carregar catálogo (${res.status})`);
+  const res = await fetch(`${API_URL}/api/public/colors`);
+
+  if (!res.ok) {
+    throw new Error("Erro ao carregar catálogo de cores");
+  }
+
   const data = (await res.json()) as Cor[];
-  _cache = data.filter(c => c.code && c.name && c.url);
-  return _cache;
+  return data;
 }

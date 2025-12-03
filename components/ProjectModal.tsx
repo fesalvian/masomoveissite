@@ -1,24 +1,19 @@
-import React, { useEffect } from "react";
-import type { Project } from "../src/types";
-import { cores as catalogo } from "../src/data/cores";
+import React, { useEffect, useState } from "react";
+import type { Projeto } from "../src/types";
 
-type Props = { project: Project; onClose: () => void; };
+type Props = { project: Projeto; onClose: () => void };
 
 const ProjectModal: React.FC<Props> = ({ project, onClose }) => {
-  // ESC fecha
+  const [img, setImg] = useState(project.capa);
+
   useEffect(() => {
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [onClose]);
-
-  const coresUsadas = project.cores
-    .map(c => catalogo.find(x => x.code === c))
-    .filter(Boolean);
+  }, []);
 
   return (
     <div
-      role="dialog" aria-modal="true"
       className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center p-4"
       onClick={onClose}
     >
@@ -27,53 +22,64 @@ const ProjectModal: React.FC<Props> = ({ project, onClose }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-          <h3 className="text-white font-semibold">{project.title}</h3>
-          <button onClick={onClose} className="text-white/70 hover:text-white text-xl">×</button>
+          <h3 className="text-white font-semibold">{project.nome}</h3>
+          <button className="text-white/70 hover:text-white text-xl" onClick={onClose}>
+            ×
+          </button>
         </div>
 
-        {/* imagem principal */}
+        {/* IMAGEM PRINCIPAL */}
         <div className="aspect-video w-full bg-black">
-          {project.images?.[0] ? (
-            <img src={project.images[0]} alt={project.title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full grid place-content-center text-white/60">Sem imagem</div>
-          )}
+          <img src={img} alt={project.nome} className="w-full h-full object-cover" />
         </div>
 
-        <div className="p-4 text-white/80">
-          <p>{project.descricao ?? "Projeto com acabamento premium."}</p>
+        <div className="p-4 text-white/80 text-sm">
+          <p>{project.descricao}</p>
 
-          <div className="mt-4 text-sm text-white/60">
-            {project.ambiente} {project.cidade ? `• ${project.cidade}` : ""} {project.ano ? `• ${project.ano}` : ""}
-          </div>
+          <p className="text-white/60 mt-3">{project.ambiente}</p>
 
-          {/* cores */}
-          {coresUsadas.length ? (
+          {/* CORES USADAS */}
+          {project.coresUsadas.length > 0 && (
             <div className="mt-4">
               <p className="text-white font-medium mb-2">Cores usadas</p>
-              <div className="flex flex-wrap gap-3">
-                {coresUsadas.map((c) => (
-                  <div key={c!.code} className="flex items-center gap-2">
-                    <span
-                      className="inline-block w-5 h-5 rounded border border-white/20"
-                      style={{ backgroundColor: c!.hex }}
-                      aria-label={`Cor ${c!.name}`}
+
+              <div className="flex flex-col gap-3">
+                {project.coresUsadas.map((c) => (
+                  <div className="flex items-center gap-3" key={c.id}>
+                    <img
+                      src={c.cor.imagem}
+                      alt={c.cor.nome}
+                      className="w-10 h-10 rounded object-cover border border-white/10"
                     />
-                    <span className="text-white/80 text-sm">{c!.name} <span className="text-white/50">({c!.code})</span></span>
+                    <span className="text-white/80">{c.cor.nome}</span>
                   </div>
                 ))}
               </div>
             </div>
-          ) : null}
-
-          {/* thumbs */}
-          {project.images && project.images.length > 1 && (
-            <div className="mt-4 flex gap-3 overflow-x-auto">
-              {project.images.slice(1).map((src, i) => (
-                <img key={i} src={src} alt={`${project.title} ${i+2}`} className="w-28 h-20 object-cover rounded border border-white/10" />
-              ))}
-            </div>
           )}
+
+          {/* THUMBNAILS */}
+          <div className="mt-4 flex gap-3 overflow-x-auto">
+            {/* Capa primeiro */}
+            <img
+              src={project.capa}
+              className={`w-28 h-20 object-cover rounded border border-white/10 cursor-pointer ${
+                img === project.capa ? "ring-2 ring-brand-accent" : ""
+              }`}
+              onClick={() => setImg(project.capa)}
+            />
+
+            {project.imagens.map((i) => (
+              <img
+                key={i.id}
+                src={i.url}
+                onClick={() => setImg(i.url)}
+                className={`w-28 h-20 object-cover rounded border border-white/10 cursor-pointer ${
+                  img === i.url ? "ring-2 ring-brand-accent" : ""
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>

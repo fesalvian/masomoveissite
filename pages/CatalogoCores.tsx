@@ -1,9 +1,10 @@
+//src/pages/CatalogoCores.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ColorCard from "../components/ColorCard";
 import ColorModal from "../components/ColorModal";
-import { getCores } from "../src/service/catalogo";
+import { getCores } from "../src/service/catalogo";     // 🔁 ajusta o path se preciso
 import type { Cor } from "../src/service/catalogo";
 
 const linhas = ["Todas", "Madeira", "Neutros", "Coloridos"] as const;
@@ -37,13 +38,29 @@ const CatalogoCores: React.FC = () => {
   }, []);
 
   const list = useMemo(() => {
-    const qLow = q.toLowerCase();
-    return all.filter(c => {
-      const okLinha = linha === "Todas" || c.line === linha;
-      const okBusca = !q || c.name.toLowerCase().includes(qLow) || c.code.toLowerCase().includes(qLow);
-      return okLinha && okBusca;
-    });
-  }, [all, linha, q]);
+  const qLow = q.toLowerCase();
+
+  return all.filter((c) => {
+    // 🔹 Mapeia os textos dos botões para valores do banco
+    const tipoMap: Record<string, string | null> = {
+      Todas: null,
+      Madeira: "MADEIRA",
+      Neutros: "NEUTRO",
+      Coloridos: "ROCHOSO",
+    };
+
+    const tipoAlvo = tipoMap[linha];
+
+    const okTipo = tipoAlvo === null || c.tipo === tipoAlvo;
+
+    const okBusca =
+      !q ||
+      c.nome.toLowerCase().includes(qLow) ||
+      c.colecao.toLowerCase().includes(qLow);
+
+    return okTipo && okBusca;
+  });
+}, [all, linha, q]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-primary to-black">
@@ -55,11 +72,15 @@ const CatalogoCores: React.FC = () => {
         {/* filtros */}
         <div className="mt-6 flex flex-col sm:flex-row gap-3">
           <div className="flex flex-wrap gap-2">
-            {linhas.map(l => (
+            {linhas.map((l) => (
               <button
                 key={l}
                 onClick={() => setLinha(l)}
-                className={`px-4 py-2 rounded border ${linha === l ? "bg-brand-accent text-black border-transparent" : "border-white/10 text-white/80 hover:text-white"}`}
+                className={`px-4 py-2 rounded border ${
+                  linha === l
+                    ? "bg-brand-accent text-black border-transparent"
+                    : "border-white/10 text-white/80 hover:text-white"
+                }`}
               >
                 {l}
               </button>
@@ -77,7 +98,10 @@ const CatalogoCores: React.FC = () => {
         {loading && (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="rounded-lg h-40 bg-white/10 border border-white/10 animate-pulse" />
+              <div
+                key={i}
+                className="rounded-lg h-40 bg-white/10 border border-white/10 animate-pulse"
+              />
             ))}
           </div>
         )}
@@ -87,11 +111,13 @@ const CatalogoCores: React.FC = () => {
         {!loading && !err && (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
             {list.map((c) => (
-              <ColorCard key={c.code} cor={c} onClick={setActive} />
+              <ColorCard key={c.id} cor={c} onClick={setActive} />
             ))}
           </div>
         )}
-        {!loading && !err && list.length === 0 && <p className="text-white/60 mt-6">Nenhuma cor encontrada.</p>}
+        {!loading && !err && list.length === 0 && (
+          <p className="text-white/60 mt-6">Nenhuma cor encontrada.</p>
+        )}
       </main>
       <Footer />
 

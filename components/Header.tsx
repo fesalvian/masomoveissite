@@ -1,3 +1,4 @@
+//src/components/Header.tsx
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "../src/assets/logo.png";

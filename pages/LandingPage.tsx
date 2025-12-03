@@ -1,5 +1,5 @@
 // pages/LandingPage.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CTAButton from "../components/CTAButton";
@@ -7,9 +7,33 @@ import HeroCarousel from "../components/HeroCarousel";
 import FAQ from "../components/FAQ";
 import Reviews from "../components/Reviews";
 
+import {
+  getHomeCarousel,
+  getHomeHero,
+  getHomeData,
+} from "../src/service/home";
 
+import type { HomeCarousel, HomeHero } from "../src/service/home";
 
 const LandingPage: React.FC = () => {
+  const [carousel, setCarousel] = useState<HomeCarousel[]>([]);
+  const [hero, setHero] = useState<HomeHero | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getHomeData();
+        setCarousel(data.carousel);
+        setHero(data.hero);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-primary to-black">
       <Header />
@@ -17,27 +41,33 @@ const LandingPage: React.FC = () => {
       {/* HERO */}
       <section className="pt-24 md:pt-28">
         <div className="mx-auto w-full max-w-[80rem] px-4 grid md:grid-cols-2 gap-8 items-center">
+          
+          {/* TEXTOS + BOTÃO */}
           <div className="text-white">
             <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
-              Móveis planejados que elevam seu espaço.
+              {hero?.heroTitle ?? "Móveis planejados que elevam seu espaço."}
             </h1>
+
             <p className="mt-4 text-white/80">
-              Projeto, fabricação e instalação com acabamento premium e atenção aos detalhes.
+              {hero?.heroSubtitle ?? "Projeto, fabricação e instalação com acabamento premium."}
             </p>
+
             <div className="mt-6"><CTAButton /></div>
           </div>
 
-          {/* HERO IMAGE (carrossel) */}
-<HeroCarousel
-  className="bg-white/10" // cor de fundo de fallback
-  images={[
-    { src: "/carousel/hero.webp", alt: "Cozinha planejada com ilha" },
-    { src: "/carousel/hero2.webp", alt: "Closet iluminado em carvalho" },
-    { src: "/carousel/hero3.webp", alt: "Home office minimalista" },
-    { src: "/carousel/hero4.webp", alt: "Cozinha preta com detalhes em madeira" },
-  ]}
-  intervalMs={2000}
-/>
+          {/* CARROSSEL DINÂMICO */}
+          <HeroCarousel
+            className="bg-white/10"
+            images={
+              carousel.length > 0
+                ? carousel.map((c) => ({ src: c.url, alt: "Projeto Maso" }))
+                : [
+                    { src: "/carousel/hero.webp", alt: "fallback" },
+                    { src: "/carousel/hero2.webp", alt: "fallback" },
+                  ]
+            }
+            intervalMs={2500}
+          />
         </div>
       </section>
 

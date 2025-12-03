@@ -1,21 +1,29 @@
-export type Linha = "Madeira" | "Neutros" | "Coloridos";
+// src/types.ts
 
 export type Cor = {
-  code: string;
-  name: string;
-  hex: string;
-  linha: Linha;
+  id: number;
+  nome: string;
+  linha: string;
+  colecao: string;
+  tipo: string;
+  imagem: string;
+  createdAt: string;
 };
 
-export type Project = {
-  id: string;
-  title: string;
-  ambiente: "Cozinha" | "Dormitório" | "Sala" | "Banheiro" | "Escritório" | "Área Gourmet";
-  cidade?: string;
-  ano?: number;
-  cores: string[];      // códigos de cor
-  cover?: string;       // URL da capa (pode ser /public/...)
-  images?: string[];    // URLs extras
-  descricao?: string;
-  tags?: string[];
+export type Projeto = {
+  id: number;
+  nome: string;
+  ambiente: string;
+  descricao: string;
+  capa: string;
+  createdAt: string;
+
+  imagens: { id: number; url: string }[];
+
+  tags: { id: number; tag: string }[];
+
+  coresUsadas: {
+    id: number;
+    cor: Cor;
+  }[];
 };
