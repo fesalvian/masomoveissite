@@ -22,11 +22,15 @@ const ColorCard: React.FC<Props> = ({ cor, onClick }) => (
     </div>
 
     <div className="p-3 text-white/90">
-      <p className="font-medium">{cor.nome}</p>
-      <p className="text-xs text-white/60">
-        {cor.colecao} • {cor.linha}
-      </p>
-    </div>
+  <p className="font-medium">{cor.nome}</p>
+  <p className="text-xs text-white/60">
+    {cor.colecao} • {cor.linha}
+  </p>
+  <p className="text-[10px] text-white/40 mt-1">
+    Tipo: {cor.tipo}
+  </p>
+</div>
+
   </button>
 );
 

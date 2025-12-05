@@ -1,3 +1,4 @@
+// src/components/admin/AdminSidebar.tsx
 import { NavLink } from "react-router-dom";
 
 export default function AdminSidebar() {
@@ -12,24 +13,40 @@ export default function AdminSidebar() {
       <h1 className="text-white font-bold text-xl mb-6">Painel Admin</h1>
 
       <nav className="flex flex-col gap-1">
-        <NavLink to="/admin" className={({ isActive }) => (isActive ? activeBase : linkBase)}>
+        <NavLink
+          to="/admin"
+          end
+          className={({ isActive }) => (isActive ? activeBase : linkBase)}
+        >
           Dashboard
         </NavLink>
 
-        <NavLink to="/admin/projetos" className={({ isActive }) => (isActive ? activeBase : linkBase)}>
+        <NavLink
+          to="/admin/projetos"
+          className={({ isActive }) => (isActive ? activeBase : linkBase)}
+        >
           Projetos
         </NavLink>
 
-        <NavLink to="/admin/cores" className={({ isActive }) => (isActive ? activeBase : linkBase)}>
+        <NavLink
+          to="/admin/cores"
+          className={({ isActive }) => (isActive ? activeBase : linkBase)}
+        >
           Cores
         </NavLink>
 
-        <NavLink to="/admin/home" className={({ isActive }) => (isActive ? activeBase : linkBase)}>
+        <NavLink
+          to="/admin/home"
+          className={({ isActive }) => (isActive ? activeBase : linkBase)}
+        >
           Home (Hero + Carrossel)
         </NavLink>
 
-        <NavLink to="/admin/mensagens" className={({ isActive }) => (isActive ? activeBase : linkBase)}>
-          Mensagens
+        <NavLink
+          to="/admin/administradores"
+          className={({ isActive }) => (isActive ? activeBase : linkBase)}
+        >
+          Administradores
         </NavLink>
       </nav>
     </aside>

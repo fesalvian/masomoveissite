@@ -1,51 +1,58 @@
-import { useState } from "react";
+//src/pages/admin/AdminLogin.tsx
+import React, { useState } from "react";
+import { adminAPI } from "../../src/service/admin";
+import { useAdminAuth } from "../../src/context/AdminAuthContext";
 import { useNavigate } from "react-router-dom";
 
-export default function AdminLogin() {
-  const nav = useNavigate();
+const AdminLogin = () => {
   const [email, setEmail] = useState("");
-  const [password, setPass] = useState("");
+  const [password, setPassword] = useState("");
+  const [err, setErr] = useState("");
+  const navigate = useNavigate();
+  const { login } = useAdminAuth();
 
-  const login = async (e: any) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setErr("");
 
-    // depois trocamos para chamada real
-    if (email === "admin@maso.com" && password === "123") {
-      nav("/admin");
+    try {
+      const { token } = await adminAPI.login(email, password);
+      await login(token);
+      navigate("/admin");
+    } catch (err: any) {
+      setErr(err.message || "Erro no login");
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-[#0b0d17] flex items-center justify-center">
-      <form
-        className="bg-white/5 border border-white/10 p-6 rounded-lg w-80"
-        onSubmit={login}
-      >
-        <h2 className="text-white text-xl font-bold mb-4 text-center">Admin • Login</h2>
+    <div className="h-screen w-full grid place-items-center bg-[#0f1220] text-white">
+      <form onSubmit={handleSubmit} className="bg-white/10 p-6 rounded-xl w-80 space-y-4">
+        <h2 className="text-xl font-semibold">Admin Login</h2>
 
         <input
           type="email"
-          placeholder="Email"
+          placeholder="E-mail"
           value={email}
-          onChange={e => setEmail(e.target.value)}
-          className="w-full bg-white/10 px-3 py-2 rounded text-white mb-3"
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full px-3 py-2 rounded bg-black/40 border border-white/20"
         />
 
         <input
           type="password"
           placeholder="Senha"
           value={password}
-          onChange={e => setPass(e.target.value)}
-          className="w-full bg-white/10 px-3 py-2 rounded text-white mb-4"
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full px-3 py-2 rounded bg-black/40 border border-white/20"
         />
 
-        <button
-          type="submit"
-          className="w-full py-2 bg-brand-accent text-black font-semibold rounded"
-        >
+        {err && <p className="text-red-400 text-sm">{err}</p>}
+
+        <button className="w-full py-2 bg-brand-accent text-black font-semibold rounded hover:bg-brand-accent/90 transition hover:cursor-pointer hover:text-white">
           Entrar
         </button>
       </form>
     </div>
   );
-}
+};
+
+export default AdminLogin;
