@@ -6,19 +6,15 @@ import { AdminAuthProvider } from "../src/context/AdminAuthContext";
 
 const App = () => {
   const { pathname } = useLocation();
-
-  // se começar com /admin → esconde o WhatsApp
   const isAdmin = pathname.startsWith("/admin");
 
   return (
-    <>
-      <AdminAuthProvider>
-        <AppRoutes />
-      </AdminAuthProvider>
+    <AdminAuthProvider>
+      <AppRoutes />
 
-      {/* Só aparece no site público */}
+      {/* WhatsApp apenas no site público */}
       {!isAdmin && <WhatsAppFloat size={80} offsetX={40} offsetY={56} />}
-    </>
+    </AdminAuthProvider>
   );
 };
 

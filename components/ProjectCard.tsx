@@ -1,3 +1,4 @@
+// components/ProjectCard.tsx
 import React from "react";
 import type { Projeto } from "../src/types";
 

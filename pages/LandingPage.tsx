@@ -6,25 +6,27 @@ import CTAButton from "../components/CTAButton";
 import HeroCarousel from "../components/HeroCarousel";
 import FAQ from "../components/FAQ";
 import Reviews from "../components/Reviews";
+import ProjectModal from "../components/ProjectModal";
+import { getRecentProjects } from "../src/service/projetos";
+import type { Projeto } from "../src/types";
 
 import {
-  getHomeCarousel,
-  getHomeHero,
   getHomeData,
 } from "../src/service/home";
 
-import type { HomeCarousel, HomeHero } from "../src/service/home";
+import type { HomeHero } from "../src/service/home";
 
 const LandingPage: React.FC = () => {
-  const [carousel, setCarousel] = useState<HomeCarousel[]>([]);
   const [hero, setHero] = useState<HomeHero | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recent, setRecent] = useState<Projeto[]>([]);
+  const [selected, setSelected] = useState<Projeto | null>(null);
+
 
   useEffect(() => {
     (async () => {
       try {
         const data = await getHomeData();
-        setCarousel(data.carousel);
         setHero(data.hero);
       } catch (e) {
         console.error(e);
@@ -33,6 +35,18 @@ const LandingPage: React.FC = () => {
       }
     })();
   }, []);
+
+  useEffect(() => {
+  (async () => {
+    try {
+      const p = await getRecentProjects();
+      setRecent(p);
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+}, []);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-primary to-black">
@@ -57,17 +71,15 @@ const LandingPage: React.FC = () => {
 
           {/* CARROSSEL DINÂMICO */}
           <HeroCarousel
-            className="bg-white/10"
-            images={
-              carousel.length > 0
-                ? carousel.map((c) => ({ src: c.url, alt: "Projeto Maso" }))
-                : [
-                    { src: "/carousel/hero.webp", alt: "fallback" },
-                    { src: "/carousel/hero2.webp", alt: "fallback" },
-                  ]
-            }
-            intervalMs={2500}
-          />
+  className="bg-white/10"
+  images={[
+    { src: "/carousel/hero1.webp", alt: "Cozinha planejada Maso" },
+    { src: "/carousel/hero2.webp", alt: "Ambiente moderno Maso" },
+    { src: "/carousel/hero3.webp", alt: "Lavanderia premium Maso" }
+  ]}
+  intervalMs={2500}
+/>
+
         </div>
       </section>
 
@@ -93,46 +105,37 @@ const LandingPage: React.FC = () => {
       {/* GALERIA */}
 <section className="mt-16">
   <div className="mx-auto w-full max-w-[80rem] px-4">
-    <h2 className="text-white text-2xl md:text-3xl font-bold mb-6">Projetos recentes</h2>
+    <h2 className="text-white text-2xl md:text-3xl font-bold mb-6">
+      Projetos recentes
+    </h2>
 
-    {/** lista estática (troque pelos seus arquivos) */}
-    {/** se quiser, mova isso para um arquivo src/data/gallery.ts */}
-    {(() => {
-      const gallery = [
-        { src: "/projetos/p1.webp", alt: "Cozinha em L — branco e madeira" },
-        { src: "/projetos/p2.webp", alt: "Closet iluminado — carvalho claro" },
-        { src: "/projetos/p3.webp", alt: "Home office compacto — cinza" },
-        { src: "/projetos/p4.webp", alt: "Sala com painel ripado" },
-        { src: "/projetos/p5.webp", alt: "Cozinha com ilha — preto fosco" },
-        { src: "/projetos/p6.webp", alt: "Área gourmet — amadeirado" },
-      ];
-
-      return (
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {gallery.map((g, i) => (
-            <div key={i} className="aspect-square rounded-lg overflow-hidden bg-white/10 border border-white/10">
-              <img
-                src={g.src}
-                alt={g.alt}
-                className="w-full h-full object-cover"
-                loading="lazy"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = "0.25"; }}
-              />
-            </div>
-          ))}
-        </div>
-      );
-    })()}
+    {recent.length === 0 ? (
+      <p className="text-white/60">Nenhum projeto encontrado.</p>
+    ) : (
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {recent.map((p) => (
+          <div
+            key={p.id}
+            className="aspect-square rounded-lg overflow-hidden bg-white/10 border border-white/10 cursor-pointer hover:scale-[1.02] transition"
+            onClick={() => setSelected(p)}
+          >
+            <img
+              src={p.capa}
+              alt={p.nome}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        ))}
+      </div>
+    )}
 
     <div className="mt-6 flex gap-3">
       <CTAButton text="Quero um projeto" />
-      {/* opcional: link para a página completa de projetos */}
-      {/* <Link to="/projetos" className="px-6 py-3 rounded-md border border-white/20 text-white/90 hover:text-white">
-        Ver todos os projetos
-      </Link> */}
     </div>
   </div>
 </section>
+
 
 {/* SOBRE O MATERIAL (MDF) */}
 <section className="mt-16">
@@ -208,6 +211,13 @@ const LandingPage: React.FC = () => {
 
 
       <Footer />
+      {selected && (
+  <ProjectModal
+    project={selected}
+    onClose={() => setSelected(null)}
+  />
+)}
+
     </div>
   );
 };

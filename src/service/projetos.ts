@@ -1,3 +1,4 @@
+// src/service/projetos.ts
 import type { Projeto } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
@@ -25,3 +26,10 @@ export async function buscarProjetos(search: string): Promise<Projeto[]> {
   if (!res.ok) throw new Error("Erro ao buscar projetos");
   return res.json();
 }
+
+export async function getRecentProjects() {
+  const res = await fetch(`${API_URL}/api/public/projects/recent`);
+  if (!res.ok) throw new Error("Erro ao buscar projetos recentes");
+  return res.json();
+}
+

@@ -1,3 +1,4 @@
+// components/ProjectModal.tsx
 import React, { useEffect, useState } from "react";
 import type { Projeto } from "../src/types";
 
