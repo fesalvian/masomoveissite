@@ -1,5 +1,5 @@
 // src/context/AdminAuthContext.tsx
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { adminAPI } from "../service/admin";
 
 type AdminUser = {
@@ -29,23 +29,15 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
   const [user, setUser] = useState<AdminUser | null>(null);
 
   // Carregar usuário ao iniciar
-  useEffect(() => {
-    if (!token) return;
-    adminAPI
-      .me(token)
-      .then(setUser)
-      .catch(() => {
-        logout();
-      });
-  }, [token]);
+
 
   async function login(token: string) {
-  localStorage.setItem("admin_token", token);
-  setToken(token);
+    localStorage.setItem("admin_token", token);
+    setToken(token);
 
-  const profile = await adminAPI.me(token);
-  setUser(profile);
-}
+    const profile = await adminAPI.me(token);
+    setUser(profile);
+  }
 
 
   function logout() {

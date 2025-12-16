@@ -1,13 +1,12 @@
-// src/service/admin.ts
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export const adminAPI = {
-  async login(email: string, password: string) {
+  async login(login: string, senha: string) {
     try {
-      const res = await fetch(`${API_URL}/api/admin/auth/login`, {
+      const res = await fetch(`${API_URL}/adm/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ login, senha }),
       });
 
       if (!res.ok) {
@@ -17,12 +16,13 @@ export const adminAPI = {
 
       return res.json();
     } catch (e) {
-      throw new Error("Falha ao conectar ao servidor");
+      throw new Error(e + "\n Falha ao conectar ao servidor");
     }
   },
 
-  async me(token: string) {
-    const res = await fetch(`${API_URL}/api/admin/auth/me`, {
+  async me(token: string | null) {
+    const res = await fetch(`${API_URL}/restrito`, {
+      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -31,5 +31,5 @@ export const adminAPI = {
     if (!res.ok) throw new Error("Não autenticado");
 
     return res.json();
-  },
+  }
 };

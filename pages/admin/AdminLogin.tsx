@@ -5,7 +5,7 @@ import { useAdminAuth } from "../../src/context/AdminAuthContext";
 import { useNavigate } from "react-router-dom";
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState("");
+  const [loginf, setLoginf] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const navigate = useNavigate();
@@ -16,8 +16,8 @@ const AdminLogin = () => {
     setErr("");
 
     try {
-      const { token } = await adminAPI.login(email, password);
-      await login(token);
+      const { tokenJWT } = await adminAPI.login(loginf, password);
+      await login(tokenJWT);
       navigate("/admin");
     } catch (err: any) {
       setErr(err.message || "Erro no login");
@@ -30,10 +30,10 @@ const AdminLogin = () => {
         <h2 className="text-xl font-semibold">Admin Login</h2>
 
         <input
-          type="email"
-          placeholder="E-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="login"
+          placeholder=""
+          value={loginf}
+          onChange={(e) => setLoginf(e.target.value)}
           className="w-full px-3 py-2 rounded bg-black/40 border border-white/20"
         />
 
