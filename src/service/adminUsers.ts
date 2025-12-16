@@ -28,8 +28,8 @@ export const adminUsersAPI = {
     return res.json();
   },
 
-  async remove(token: string, id: number) {
-    const res = await fetch(`${API_URL}/api/admin/users/${id}`, {
+  async remove(token: string, login: string) {
+    const res = await fetch(`${API_URL}/restrito/${login}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

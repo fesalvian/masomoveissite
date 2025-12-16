@@ -5,19 +5,23 @@ import { useAdminAuth } from "../../src/context/AdminAuthContext";
 import { useNavigate } from "react-router-dom";
 
 const AdminLogin = () => {
-  const [loginf, setLoginf] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const navigate = useNavigate();
-  const { login } = useAdminAuth();
+  const { loginf } = useAdminAuth();
+ const { admin } = useAdminAuth();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
 
-    try {
-      const { tokenJWT } = await adminAPI.login(loginf, password);
-      await login(tokenJWT);
+    try {  
+      const { tokenJWT } = await adminAPI.login(login, password);
+      await loginf(login, tokenJWT); 
+
+      const profile = await adminAPI.me(login,tokenJWT);
+      admin(profile)
       navigate("/admin");
     } catch (err: any) {
       setErr(err.message || "Erro no login");
@@ -32,8 +36,8 @@ const AdminLogin = () => {
         <input
           type="login"
           placeholder=""
-          value={loginf}
-          onChange={(e) => setLoginf(e.target.value)}
+          value={login}
+          onChange={(e) => setLogin(e.target.value)}
           className="w-full px-3 py-2 rounded bg-black/40 border border-white/20"
         />
 

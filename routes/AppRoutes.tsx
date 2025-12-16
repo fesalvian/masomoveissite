@@ -14,6 +14,7 @@ import DashboardHome from "../pages/admin/DashboardHome";
 import AdminProjects from "../pages/admin/AdminProjects";
 import AdminColors from "../pages/admin/AdminColors";
 import AdminCRUD from "../pages/admin/AdminCRUD";
+import AdminMeCRUD from "../pages/admin/AdminMeCRUD";
 import AdminHomeSettings from "../pages/admin/AdminHomeSettings";
 
 import RequireAdmin from "../components/admin/RequireAdmin";
@@ -38,11 +39,13 @@ const AppRoutes: React.FC = () => (
         </RequireAdmin>
       }
     >
+      
       <Route index element={<DashboardHome />} />
       <Route path="projetos" element={<AdminProjects />} />
       <Route path="cores" element={<AdminColors />} />
       <Route path="home" element={<AdminHomeSettings />} />
       <Route path="administradores" element={<AdminCRUD />} />
+      <Route path="me" element={<AdminMeCRUD />} />
     </Route>
 
     {/* fallback */}

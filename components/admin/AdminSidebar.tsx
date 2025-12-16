@@ -49,6 +49,12 @@ export default function AdminSidebar() {
           Administradores
         </NavLink>
       </nav>
+         <NavLink
+          to="/admin/me"
+          className={({ isActive }) => (isActive ? activeBase : linkBase)}
+        >
+          perfil
+        </NavLink>
     </aside>
   );
 }

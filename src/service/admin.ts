@@ -20,8 +20,8 @@ export const adminAPI = {
     }
   },
 
-  async me(token: string | null) {
-    const res = await fetch(`${API_URL}/restrito`, {
+  async me(login:string, token: string) {
+    const res = await fetch(`${API_URL}/restrito?login=`+login, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
