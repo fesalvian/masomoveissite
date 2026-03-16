@@ -9,9 +9,13 @@ export default function AdminCRUD() {
   const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
-    name: "",
+    nome: "",
+    cpf: "",
     email: "",
-    password: "",
+    usuario: {
+      login: "",
+      senha: ""
+    }
   });
 
   async function loadAdmins() {
@@ -25,20 +29,22 @@ export default function AdminCRUD() {
     loadAdmins();
   }, []);
 
-  async function handleCreate() {
-    if (!form.name || !form.email || !form.password) return alert("Preencha todos os campos.");
+  async function  handleCreate() {
+    if (!form.nome || !form.cpf || !form.email || !form.usuario.login || !form.usuario.senha) return alert("Preencha todos os campos.");
 
     await adminUsersAPI.create(token!, form);
     await loadAdmins();
 
-    setForm({ name: "", email: "", password: "" });
+    setForm({
+      nome: "", cpf: "", email: "",
+      usuario: {
+        login: "",
+        senha: ""
+      }
+    });
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm("Tem certeza que deseja excluir este admin?")) return;
-    await adminUsersAPI.remove(token!, id);
-    await loadAdmins();
-  }
+
 
   return (
     <div className="text-white">
@@ -49,29 +55,51 @@ export default function AdminCRUD() {
         <h2 className="text-lg font-semibold mb-3">Criar administrador</h2>
 
         <input
-  className="w-full p-2 rounded bg-black/30 mb-2"
-  placeholder="Nome"
-  value={form.name}
-  autoComplete="off"
-  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-/>
+          className="w-full p-2 rounded bg-black/30 mb-2"
+          placeholder="Nome"
+          value={form.nome}
+          autoComplete="off"
+          onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
+        />
+        <input
+          className="w-full p-2 rounded bg-black/30 mb-2"
+          placeholder="Cpf"
+          value={form.cpf}
+          autoComplete="off"
+          onChange={(e) => setForm((f) => ({ ...f, cpf: e.target.value }))}
+        />
 
-<input
-  className="w-full p-2 rounded bg-black/30 mb-2"
-  placeholder="E-mail"
-  value={form.email}
-  autoComplete="new-email"
-  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-/>
+        <input
+          className="w-full p-2 rounded bg-black/30 mb-2"
+          placeholder="E-mail"
+          value={form.email}
+          autoComplete="new-email"
+          onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+        />
+        <input
+          className="w-full p-2 rounded bg-black/30 mb-2"
+          placeholder="Login"
+          value={form.usuario.login}
+          onChange={(e) =>
+            setForm((f) => ({
+              ...f,
+              usuario: { ...f.usuario, login: e.target.value }
+            }))
+          }
+        />
 
-<input
-  className="w-full p-2 rounded bg-black/30 mb-4"
-  placeholder="Senha"
-  type="password"
-  value={form.password}
-  autoComplete="new-password"
-  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-/>
+        <input
+          type="password"
+          className="w-full p-2 rounded bg-black/30 mb-4"
+          placeholder="Senha"
+          value={form.usuario.senha}
+          onChange={(e) =>
+            setForm((f) => ({
+              ...f,
+              usuario: { ...f.usuario, senha: e.target.value }
+            }))
+          }
+        />
 
 
         <button
@@ -95,16 +123,9 @@ export default function AdminCRUD() {
               className="bg-white/5 border border-white/10 rounded p-4 flex justify-between items-center"
             >
               <div>
-                <p className="font-semibold">{adm.name}</p>
+                <p className="font-semibold">{adm.nome}</p>
                 <p className="text-white/60 text-sm">{adm.email}</p>
               </div>
-
-              <button
-                onClick={() => handleDelete(adm.id)}
-                className="text-red-400 hover:text-red-300"
-              >
-                Deletar
-              </button>
             </div>
           ))}
         </div>

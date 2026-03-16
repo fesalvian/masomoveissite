@@ -19,8 +19,8 @@ const AdminLogin = () => {
     try {  
       const { tokenJWT } = await adminAPI.login(login, password);
       await loginf(login, tokenJWT); 
-
-      const profile = await adminAPI.me(login,tokenJWT);
+  
+      const profile = await adminAPI.me(tokenJWT);
       admin(profile)
       navigate("/admin");
     } catch (err: any) {

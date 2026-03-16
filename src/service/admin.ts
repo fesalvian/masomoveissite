@@ -10,8 +10,14 @@ export const adminAPI = {
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Erro ao fazer login");
+        if (res.status === 401) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "não autorizado");
+
+        } else {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Erro ao fazer login");
+        }
       }
 
       return res.json();
@@ -20,8 +26,9 @@ export const adminAPI = {
     }
   },
 
-  async me(login:string, token: string) {
-    const res = await fetch(`${API_URL}/restrito?login=`+login, {
+  async me(token: string) {
+    console.log(token)
+    const res = await fetch(`${API_URL}/restrito`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,

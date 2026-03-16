@@ -2,7 +2,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export const adminUsersAPI = {
   async list(token: string) {
-    const res = await fetch(`${API_URL}/api/admin/users`, {
+    const res = await fetch(`${API_URL}/restrito/adms`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -10,14 +10,50 @@ export const adminUsersAPI = {
     return res.json();
   },
 
-  async create(token: string, data: { name: string; email: string; password: string }) {
-    const res = await fetch(`${API_URL}/api/admin/users`, {
+
+  async create(token: string, data: { nome: string; cpf:string; email: string; usuario:{login:string, senha:string}}) {
+    const res = await fetch(`${API_URL}/restrito/cadastro`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,qgq
+      },
+      body: JSON.stringify( {
+          nome: data.nome,
+          cpf: data.cpf,
+          email: data.email,
+          usuario:{
+            login: data.usuario.login,
+            senha: data.usuario.senha
+          }
+        }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Erro ao criar admin");
+    }
+
+    return res.json();
+  },
+   async update(token: string,login:any, data: { name: string; cpf:string; email: string; usuario:{login:string, senha:string} }) {
+    const res = await fetch(`${API_URL}/restrito/`+login, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(
+        {
+          nome: data.name,
+          cpf: data.cpf,
+          email: data.email,
+          usuario:{
+            login: data.usuario.login,
+            senha: data.usuario.senha
+          }
+        }
+      ),
     });
 
     if (!res.ok) {
@@ -42,5 +78,5 @@ export const adminUsersAPI = {
     }
 
     return res.json();
-  },
+  }
 };

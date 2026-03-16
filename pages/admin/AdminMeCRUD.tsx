@@ -2,21 +2,27 @@
 import { useEffect, useState } from "react";
 import { useAdminAuth } from "../../src/context/AdminAuthContext";
 import { adminUsersAPI } from "../../src/service/adminUsers";
+import { adminAPI } from "../../src/service/admin";
+import { useNavigate } from "react-router-dom";
 
-export default function AdminMeCRUD() {
+export default function AdminCRUD() {
   const { user, token } = useAdminAuth();
-  const [admins, setAdmins] = useState<any[]>([]);
+  const login = user?.usuario.login
   const [loading, setLoading] = useState(true);
-
+  const { admin } = useAdminAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState({
+    cpf: "",
     name: "",
     email: "",
-    password: "",
+    usuario: {
+      login: "",
+      senha: ""
+    }
   });
 
   async function loadAdmins() {
     setLoading(true);
-    console.log(user)
     setLoading(false);
   }
 
@@ -24,90 +30,125 @@ export default function AdminMeCRUD() {
     loadAdmins();
   }, []);
 
-  async function handleCreate() {
-    if (!form.name || !form.email || !form.password) return alert("Preencha todos os campos.");
+  async function handleUpdate() {
+    console.log("submit")
+    if (
+      !form.name &&
+      !form.email &&
+      !form.cpf &&
+      !form.usuario.login &&
+      !form.usuario.senha
+    ) {
+      return alert("Preencha pelo menos um campo.");
+    }
 
-    await adminUsersAPI.create(token!, form);
+    await adminUsersAPI.update(token!, login, form);
     await loadAdmins();
 
-    setForm({ name: "", email: "", password: "" });
+    setForm({
+      cpf: "",
+      name: "",
+      email: "",
+      usuario: {
+        login: "",
+        senha: ""
+      }
+    });
+    const profile = await adminAPI.me(token!);
+    console.log(profile)
+    admin(profile)
   }
+  async function handlInativa() {
+    adminUsersAPI.remove(token!, login!).then(
+      resp => {
+        if (resp.sucess) {
+          localStorage.clear();
+          navigate("/admin/login");
+        }
+      }
+    );
 
-  async function handleDelete(id: number) {
-    if (!confirm("Tem certeza que deseja excluir este admin?")) return;
-    await adminUsersAPI.remove(token!, id);
-    await loadAdmins();
   }
 
   return (
     <div className="text-white">
-      <h1 className="text-2xl font-bold mb-6">{user?.name}</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        Administrador: {user?.nome}
+      </h1>
+      <p className="mb-2">CPF: {user?.cpf}</p>
+      <p className="mb-6">Login: {user?.usuario.login}</p>
 
-      {/* FORM DE CRIAÇÃO */}
       <div className="bg-white/10 border border-white/20 rounded p-4 max-w-md mb-8">
-        <h2 className="text-lg font-semibold mb-3">Criar administrador</h2>
+        <h2 className="text-lg font-semibold mb-3">
+          Atualizar meus dados
+        </h2>
 
         <input
-  className="w-full p-2 rounded bg-black/30 mb-2"
-  placeholder="Nome"
-  value={form.name}
-  autoComplete="off"
-  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-/>
+          className="w-full p-2 rounded bg-black/30 mb-2"
+          placeholder="Nome"
+          value={form.name}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, name: e.target.value }))
+          }
+        />
 
-<input
-  className="w-full p-2 rounded bg-black/30 mb-2"
-  placeholder="E-mail"
-  value={form.email}
-  autoComplete="new-email"
-  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-/>
+        <input
+          className="w-full p-2 rounded bg-black/30 mb-2"
+          placeholder="CPF"
+          value={form.cpf}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, cpf: e.target.value }))
+          }
+        />
 
-<input
-  className="w-full p-2 rounded bg-black/30 mb-4"
-  placeholder="Senha"
-  type="password"
-  value={form.password}
-  autoComplete="new-password"
-  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-/>
+        <input
+          className="w-full p-2 rounded bg-black/30 mb-2"
+          placeholder="E-mail"
+          value={form.email}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, email: e.target.value }))
+          }
+        />
 
+        <input
+          className="w-full p-2 rounded bg-black/30 mb-2"
+          placeholder="Login"
+          value={form.usuario.login}
+          onChange={(e) =>
+            setForm((f) => ({
+              ...f,
+              usuario: { ...f.usuario, login: e.target.value }
+            }))
+          }
+        />
+
+        <input
+          type="password"
+          className="w-full p-2 rounded bg-black/30 mb-4"
+          placeholder="Senha"
+          value={form.usuario.senha}
+          onChange={(e) =>
+            setForm((f) => ({
+              ...f,
+              usuario: { ...f.usuario, senha: e.target.value }
+            }))
+          }
+        />
 
         <button
-          onClick={handleCreate}
+          onClick={handleUpdate}
           className="bg-brand-accent text-black font-bold px-4 py-2 rounded w-full"
         >
-          Criar admin
+          Atualizar admin
+        </button>
+
+        <button
+          onClick={handlInativa}
+          className="background-color red bg-red-500 text-white font-bold px-4 py-2 rounded w-full mt-4 mb-4 mx-2"
+        >
+          Inativar
         </button>
       </div>
-
-      {/* LISTA DE ADMINS */}
-      <h2 className="text-lg font-semibold mb-3">Lista de administradores</h2>
-
-      {loading ? (
-        <p>Carregando...</p>
-      ) : (
-        <div className="space-y-3">
-          {admins.map((adm) => (
-            <div
-              key={adm.id}
-              className="bg-white/5 border border-white/10 rounded p-4 flex justify-between items-center"
-            >
-              <div>
-                <p className="font-semibold">{adm.name}</p>
-                <p className="text-white/60 text-sm">{adm.email}</p>
-              </div>
-
-              <button
-                onClick={() => handleDelete(adm.id)}
-                className="text-red-400 hover:text-red-300"
-              >
-                Deletar
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
