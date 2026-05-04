@@ -11,7 +11,7 @@ export const adminProjectsAPI = {
   },
 
   async create(token: string, data: any) {
-    const res = await fetch(`${API_URL}/api/admin/projects`, {
+    const res = await fetch(`${API_URL}/restrito/protudo`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -24,7 +24,7 @@ export const adminProjectsAPI = {
   },
 
   async update(token: string, id: number, data: any) {
-    const res = await fetch(`${API_URL}/api/admin/projects/${id}`, {
+    const res = await fetch(`${API_URL}/restrito/protudo?id=${id}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,

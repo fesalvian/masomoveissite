@@ -1,8 +1,7 @@
 // pages/admin/AdminProjects.tsx
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { adminProjectsAPI } from "../../src/service/adminProjects";
 import { adminColorsAPI } from "../../src/service/adminColors";
-import { uploadImage, fileToBase64 } from "../../src/service/upload";
 import { useAdminAuth } from "../../src/context/AdminAuthContext";
 import placeholderImg from "../../src/assets/placeholder.jpg";
 
@@ -11,8 +10,6 @@ type ProjetoForm = {
   descricao: string;
   ambiente: string;
   capaUrl: string;
-  capaFile: File | null;
-  imagensFiles: File[];
   imagensUrls: string[];
   tags: string[];
   tagInput: string;
@@ -27,18 +24,16 @@ export default function AdminProjects() {
   const [loading, setLoading] = useState(true);
   const [colorSearch, setColorSearch] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
-  const capaInputRef = useRef<HTMLInputElement>(null);
-  const imagensInputRef = useRef<HTMLInputElement>(null);
 
-
+  // Estados para inputs de URL
+  const [capaUrlInput, setCapaUrlInput] = useState("");
+  const [imagemUrlInput, setImagemUrlInput] = useState("");
 
   const [form, setForm] = useState<ProjetoForm>({
     nome: "",
     descricao: "",
     ambiente: "COZINHA",
     capaUrl: "",
-    capaFile: null,
-    imagensFiles: [],
     imagensUrls: [],
     tags: [],
     tagInput: "",
@@ -73,99 +68,114 @@ export default function AdminProjects() {
     load();
   }, []);
 
-  // ---------- UPLOAD CAPA ----------
-  async function handleUploadCapa() {
-    if (!form.capaFile) return alert("Selecione a capa.");
-    const base64 = await fileToBase64(form.capaFile);
-    const url = await uploadImage(base64, token!);
-    setForm((f) => ({ ...f, capaUrl: url }));
-  }
-
-  // ---------- UPLOAD IMAGENS EXTRAS ----------
-  async function handleUploadImagens() {
-    if (!form.imagensFiles.length) return alert("Selecione as imagens.");
-    const urls: string[] = [];
-
-    for (const file of form.imagensFiles) {
-      const base64 = await fileToBase64(file);
-      const url = await uploadImage(base64, token!);
-      urls.push(url);
+  // ---------- ADICIONAR URL DA CAPA ----------
+  function handleAddCapaUrl() {
+    if (!capaUrlInput.trim()) {
+      alert("Digite uma URL para a capa");
+      return;
     }
 
-    setForm((f) => ({ ...f, imagensUrls: urls }));
+    // Validação básica de URL
+    try {
+      new URL(capaUrlInput);
+    } catch {
+      alert("URL inválida");
+      return;
+    }
+
+    setForm((f) => ({ ...f, capaUrl: capaUrlInput }));
+    setCapaUrlInput("");
+  }
+
+  // ---------- ADICIONAR URL DE IMAGEM EXTRA ----------
+  function handleAddImagemUrl() {
+    if (!imagemUrlInput.trim()) {
+      alert("Digite uma URL para a imagem");
+      return;
+    }
+
+    // Validação básica de URL
+    try {
+      new URL(imagemUrlInput);
+    } catch {
+      alert("URL inválida");
+      return;
+    }
+
+    setForm((f) => ({
+      ...f,
+      imagensUrls: [...f.imagensUrls, imagemUrlInput],
+    }));
+    setImagemUrlInput("");
   }
 
   // ---------- CRIAR / SALVAR PROJETO ----------
   async function handleCreate() {
-  const { nome, descricao, ambiente, capaUrl, imagensUrls, tags, coresSelecionadas } = form;
+    const { nome, descricao, ambiente, capaUrl, imagensUrls, tags, coresSelecionadas } = form;
 
-  if (!nome || !descricao || !capaUrl) {
-    return alert("Nome, descrição e capa são obrigatórios");
+    if (!nome || !descricao || !capaUrl) {
+      return alert("Nome, descrição e capa são obrigatórios");
+    }
+
+    await adminProjectsAPI.create(token!, {
+      nome,
+      descricao,
+      ambiente,
+      capa: capaUrl,
+      imagens: imagensUrls,
+      tags: tags,
+      coresUsadas: coresSelecionadas,
+    });
+
+    // reset form
+    setEditingId(null);
+    setForm({
+      nome: "",
+      descricao: "",
+      ambiente: "COZINHA",
+      capaUrl: "",
+      imagensUrls: [],
+      tags: [],
+      tagInput: "",
+      coresSelecionadas: [],
+    });
+    setCapaUrlInput("");
+    setImagemUrlInput("");
+
+    load();
   }
 
-  await adminProjectsAPI.create(token!, {
-  nome,
-  descricao,
-  ambiente,
-  capa: capaUrl,
-  imagens: form.imagensUrls,       
-  tags: form.tags,                  
-  coresUsadas: form.coresSelecionadas, 
-});
-
-
-  // reset form
-  setEditingId(null);
-  setForm({
-    nome: "",
-    descricao: "",
-    ambiente: "COZINHA",
-    capaUrl: "",
-    capaFile: null,
-    imagensFiles: [],
-    imagensUrls: [],
-    tags: [],
-    tagInput: "",
-    coresSelecionadas: [],
-  });
-
-  load();
-}
-
   async function handleUpdate() {
-  if (!editingId) return;
+    if (!editingId) return;
 
-  const { nome, descricao, ambiente, capaUrl, imagensUrls, tags, coresSelecionadas } = form;
+    const { nome, descricao, ambiente, capaUrl, imagensUrls, tags, coresSelecionadas } = form;
 
-  await adminProjectsAPI.update(token!, editingId, {
-  nome,
-  descricao,
-  ambiente,
-  capa: capaUrl,
+    await adminProjectsAPI.update(token!, editingId, {
+      nome,
+      descricao,
+      ambiente,
+      capa: capaUrl,
+      imagens: imagensUrls,
+      tags: tags,
+      coresUsadas: coresSelecionadas,
+    });
 
-  imagens: imagensUrls,
-  tags: tags,
-  coresUsadas: coresSelecionadas,
-});
+    setEditingId(null);
+    setForm({
+      nome: "",
+      descricao: "",
+      ambiente: "COZINHA",
+      capaUrl: "",
+      imagensUrls: [],
+      tags: [],
+      tagInput: "",
+      coresSelecionadas: [],
+    });
+    setCapaUrlInput("");
+    setImagemUrlInput("");
 
-
-  setEditingId(null);
-
-  setForm({
-    nome: "",
-    descricao: "",
-    ambiente: "COZINHA",
-    capaUrl: "",
-    capaFile: null,
-    imagensFiles: [],
-    imagensUrls: [],
-    tags: [],
-    tagInput: "",
-    coresSelecionadas: [],
-  });
-
-  load();
-}
+    load();
+  }
 
   async function handleDelete(id: number) {
     if (!confirm("Deseja realmente excluir este projeto?")) return;
@@ -191,10 +201,11 @@ export default function AdminProjects() {
       {/* TOPO: PREVIEW + FORM */}
       <div className="flex gap-6 items-start mb-10">
 
-
         {/* COLUNA FORM */}
         <div className="flex-1 bg-white/10 border border-white/20 rounded p-6">
-          <h2 className="text-lg font-semibold mb-4">Criar Projeto</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            {editingId ? "Editar Projeto" : "Criar Projeto"}
+          </h2>
 
           {/* Nome */}
           <input
@@ -227,118 +238,91 @@ export default function AdminProjects() {
             <option value="AREA_GOURMET">Área Gourmet</option>
           </select>
 
-          {/* UPLOAD DE CAPA */}
-<div className="mb-4">
-  <label className="font-semibold block mb-1">Capa do Projeto</label>
+          {/* INPUT DE URL DA CAPA */}
+          <div className="mb-4">
+            <label className="font-semibold block mb-1">URL da Capa</label>
+            
+            <div className="flex gap-2">
+              <input
+                type="url"
+                className="flex-1 p-2 rounded bg-black/30"
+                placeholder="https://exemplo.com/imagem.jpg"
+                value={capaUrlInput}
+                onChange={(e) => setCapaUrlInput(e.target.value)}
+              />
+              <button
+                onClick={handleAddCapaUrl}
+                className="px-4 bg-blue-600 hover:bg-blue-700 rounded hover:cursor-pointer"
+              >
+                Adicionar
+              </button>
+            </div>
 
-  {/* REFERÊNCIA DO INPUT OCULTO */}
-  <input
-    ref={capaInputRef}
-    type="file"
-    accept="image/*"
-    className="hidden"
-    onChange={async (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+            {form.capaUrl && (
+              <div className="mt-3 relative inline-block">
+                <img
+                  src={form.capaUrl}
+                  className="w-40 h-40 object-cover rounded border border-white/20"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = placeholderImg;
+                  }}
+                />
+                <button
+                  onClick={() => setForm((f) => ({ ...f, capaUrl: "" }))}
+                  className="absolute top-1 right-1 bg-red-600 rounded-full px-2 text-xs hover:cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
 
-      const base64 = await fileToBase64(file);
-      const url = await uploadImage(base64, token!);
+          {/* INPUT DE URLS DAS IMAGENS EXTRAS */}
+          <div className="mb-4">
+            <label className="font-semibold block mb-1">URLs das Imagens Extras</label>
+            
+            <div className="flex gap-2">
+              <input
+                type="url"
+                className="flex-1 p-2 rounded bg-black/30"
+                placeholder="https://exemplo.com/imagem.jpg"
+                value={imagemUrlInput}
+                onChange={(e) => setImagemUrlInput(e.target.value)}
+              />
+              <button
+                onClick={handleAddImagemUrl}
+                className="px-4 bg-blue-600 hover:bg-blue-700 rounded hover:cursor-pointer"
+              >
+                Adicionar
+              </button>
+            </div>
 
-      setForm((f) => ({
-        ...f,
-        capaUrl: url,
-        capaFile: file,
-      }));
-    }}
-  />
-
-  {/* BOTÃO CUSTOMIZADO */}
-  {form.capaUrl ? (
-    <button
-      onClick={() => {
-        setForm((f) => ({ ...f, capaUrl: "", capaFile: null }));
-        if (capaInputRef.current) capaInputRef.current.value = "";
-      }}
-      className="w-full py-2 bg-red-600 hover:bg-red-700 active:scale-95 transition rounded mb-3 hover:cursor-pointer"
-    >
-      Remover capa
-    </button>
-  ) : (
-    <button
-      onClick={() => capaInputRef.current?.click()}
-      className="w-full py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 transition rounded mb-3 hover:cursor-pointer"
-    >
-      Escolher capa
-    </button>
-  )}
-
-  {form.capaUrl && (
-    <img
-      src={form.capaUrl}
-      className="w-40 rounded border border-white/20 mt-3"
-    />
-  )}
-</div>
-
-
-        {/* UPLOAD MULTIPLAS IMAGENS */}
-<div className="mb-4">
-  <label className="font-semibold block mb-1">Imagens extras</label>
-
-  <input
-    ref={imagensInputRef}
-    type="file"
-    accept="image/*"
-    multiple
-    className="hidden"
-    onChange={async (e) => {
-      const files = Array.from(e.target.files ?? []);
-      if (files.length === 0) return;
-
-      const urls: string[] = [];
-
-      for (const file of files) {
-        const base64 = await fileToBase64(file);
-        const url = await uploadImage(base64, token!);
-        urls.push(url);
-      }
-
-      setForm((f) => ({
-        ...f,
-        imagensUrls: [...f.imagensUrls, ...urls],
-      }));
-    }}
-  />
-
-  <button
-    onClick={() => imagensInputRef.current?.click()}
-    className="w-full py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 transition rounded mb-3 hover:cursor-pointer"
-  >
-    Selecionar imagens
-  </button>
-
-  {/* Previews */}
-  <div className="grid grid-cols-3 gap-2 mt-3">
-    {form.imagensUrls.map((url) => (
-      <div key={url} className="relative">
-        <img src={url} className="h-20 w-full object-cover rounded" />
-
-        {/* Remover imagem */}
-        <button
-          onClick={() =>
-            setForm((f) => ({
-              ...f,
-              imagensUrls: f.imagensUrls.filter((u) => u !== url),
-            }))
-          }
-          className="absolute top-1 right-1 bg-red-600 rounded-full px-2 text-xs hover:cursor-pointer"
-        >
-          ✕
-        </button>
-      </div>
-    ))}
-  </div>
-</div>
+            {/* Previews das imagens */}
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              {form.imagensUrls.map((url, index) => (
+                <div key={`${url}-${index}`} className="relative">
+                  <img
+                    src={url}
+                    className="h-20 w-full object-cover rounded"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = placeholderImg;
+                    }}
+                  />
+                  <button
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        imagensUrls: f.imagensUrls.filter((_, i) => i !== index),
+                      }))
+                    }
+                    className="absolute top-1 right-1 bg-red-600 rounded-full px-2 text-xs hover:cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* TAGS */}
           <div className="mb-4">
@@ -346,25 +330,23 @@ export default function AdminProjects() {
 
             <div className="flex gap-2">
               <input
-  className="flex-1 p-2 rounded bg-black/30"
-  placeholder="Adicionar tag"
-  value={form.tagInput}
-  onChange={(e) => setForm((f) => ({ ...f, tagInput: e.target.value }))}
-  onKeyDown={(e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (form.tagInput.trim().length > 0) {
-        setForm((f) => ({
-          ...f,
-          tags: [...f.tags, f.tagInput.trim()],
-          tagInput: "",
-        }));
-      }
-    }
-  }}
-/>
-
-
+                className="flex-1 p-2 rounded bg-black/30"
+                placeholder="Adicionar tag"
+                value={form.tagInput}
+                onChange={(e) => setForm((f) => ({ ...f, tagInput: e.target.value }))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (form.tagInput.trim().length > 0) {
+                      setForm((f) => ({
+                        ...f,
+                        tags: [...f.tags, f.tagInput.trim()],
+                        tagInput: "",
+                      }));
+                    }
+                  }
+                }}
+              />
               <button
                 onClick={() => {
                   if (form.tagInput.trim().length > 0) {
@@ -438,16 +420,15 @@ export default function AdminProjects() {
 
           {/* Submit */}
           <button
-  onClick={editingId ? handleUpdate : handleCreate}
-  className="w-full py-2 rounded text-black font-semibold
-             bg-green-500 hover:bg-green-600 transition hover:cursor-pointer"
->
-  {editingId ? "Salvar alterações" : "Criar Projeto"}
-</button>
-
+            onClick={editingId ? handleUpdate : handleCreate}
+            className="w-full py-2 rounded text-black font-semibold
+                       bg-green-500 hover:bg-green-600 transition hover:cursor-pointer"
+          >
+            {editingId ? "Salvar alterações" : "Criar Projeto"}
+          </button>
         </div>
 
-                {/* COLUNA PREVIEW */}
+        {/* COLUNA PREVIEW */}
         <div className="w-[360px] bg-white/10 border border-white/20 rounded p-4">
           <h2 className="text-lg font-semibold mb-4">Pré-visualização</h2>
 
@@ -456,6 +437,9 @@ export default function AdminProjects() {
             <img
               src={previewProjeto.capa}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = placeholderImg;
+              }}
             />
           </div>
 
@@ -485,11 +469,14 @@ export default function AdminProjects() {
           {/* Thumbnails */}
           {previewProjeto.imagens.length > 0 && (
             <div className="mt-4 flex gap-2 overflow-x-auto">
-              {[previewProjeto.capa, ...previewProjeto.imagens.map((i) => i.url)].map((src) => (
+              {[previewProjeto.capa, ...previewProjeto.imagens.map((i) => i.url)].map((src, index) => (
                 <img
-                  key={src}
+                  key={`${src}-${index}`}
                   src={src}
                   className="w-20 h-16 object-cover rounded border border-white/10"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = placeholderImg;
+                  }}
                 />
               ))}
             </div>
@@ -506,34 +493,36 @@ export default function AdminProjects() {
         <div className="grid md:grid-cols-3 gap-4">
           {projects.map((p) => (
             <div key={p.id} className="bg-white/10 border border-white/20 rounded p-4">
-              <img src={p.capa} className="w-full h-32 object-cover rounded mb-2" />
+              <img 
+                src={p.capa} 
+                className="w-full h-32 object-cover rounded mb-2"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = placeholderImg;
+                }}
+              />
 
               <p className="font-bold">{p.nome}</p>
               <p className="text-xs text-white/60">{p.ambiente}</p>
 
               <button
-  onClick={() => {
-    setEditingId(p.id); // ativar modo edição
-    setForm({
-      nome: p.nome,
-      descricao: p.descricao,
-      ambiente: p.ambiente,
-      capaUrl: p.capa,
-      capaFile: null,
-      imagensFiles: [],
-      imagensUrls: p.imagens.map((i: any) => i.url),
-      tags: p.tags.map((t: any) => t.tag),
-      tagInput: "",
-      coresSelecionadas: p.coresUsadas.map((c: any) => c.corId),
-    });
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }}
-  className="mt-3 py-1 bg-blue-500 rounded text-white font-semibold w-full hover:cursor-pointer hover:bg-blue-600"
->
-  Editar
-</button>
-
+                onClick={() => {
+                  setEditingId(p.id);
+                  setForm({
+                    nome: p.nome,
+                    descricao: p.descricao,
+                    ambiente: p.ambiente,
+                    capaUrl: p.capa,
+                    imagensUrls: p.imagens?.map((i: any) => i.url) || [],
+                    tags: p.tags?.map((t: any) => t.tag) || [],
+                    tagInput: "",
+                    coresSelecionadas: p.coresUsadas?.map((c: any) => c.corId) || [],
+                  });
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="mt-3 py-1 bg-blue-500 rounded text-white font-semibold w-full hover:cursor-pointer hover:bg-blue-600"
+              >
+                Editar
+              </button>
 
               <button
                 onClick={() => handleDelete(p.id)}
